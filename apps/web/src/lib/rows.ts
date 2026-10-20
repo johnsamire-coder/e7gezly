@@ -1,31 +1,10 @@
 /**
- * Row shapes matching supabase/migrations. Temporary: these become generated
- * types from packages/contract once codegen lands (Phase 0.6).
+ * Row types derived from the database schema — regenerated whenever a migration
+ * lands (supabase gen types). Never edit by hand; edit the migration instead.
  */
 
-export type ServiceCategoryRow = {
-  id: number;
-  parent_id: number | null;
-  slug: string;
-  name_ar: string;
-  name_en: string | null;
-  description_ar: string | null;
-  icon: string | null;
-  sort_order: number;
-  depth: number;
-  active: boolean;
-};
+import type { Database } from './database.types';
 
-export type GovernorateRow = {
-  id: number;
-  name_ar: string;
-  name_en: string | null;
-  code: string | null;
-  sort_order: number;
-  active: boolean;
-};
+export type ServiceCategoryRow = Database['public']['Tables']['service_categories']['Row'];
 
-export type AccountRoleRow = {
-  account_id: string;
-  role: 'customer' | 'provider' | 'admin';
-};
+export type GovernorateRow = Database['public']['Tables']['governorates']['Row'];
