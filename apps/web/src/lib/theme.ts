@@ -27,8 +27,8 @@ export const antdTheme: ThemeConfig = {
       siderBg: c.surface.card,
     },
     Menu: {
-      itemSelectedBg: c.brand[50],
-      itemSelectedColor: c.brand[700],
+      itemSelectedBg: c.select.bg,
+      itemSelectedColor: c.select.fg,
       itemBg: 'transparent',
     },
     Card: {

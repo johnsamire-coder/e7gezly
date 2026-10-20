@@ -42,6 +42,10 @@ ios/Pods/
 ios/Flutter/Flutter.podspec
 *.g.dart.bak
 
+# eyeball-review renders (test/preview_capture_test.dart, opt-in); pixel output
+# differs per OS, so they are never committed or compared
+apps/mobile/test/preview/
+
 # editors / os
 .idea/
 .vscode/

@@ -27,6 +27,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # lib/core/tokens.dart is generated output. Fail before the build if someone
+      # edited it by hand or changed tokens.json without re-running the generator.
+      - name: Brand tokens are in sync
+        shell: pwsh
+        working-directory: ${{ github.workspace }}
+        run: ./tools/make-tokens-dart.ps1 -Check
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

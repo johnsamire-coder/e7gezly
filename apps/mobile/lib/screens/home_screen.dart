@@ -85,17 +85,20 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.fromLTRB(E7Space.md, E7Space.lg, E7Space.md, E7Space.md),
               sliver: SliverLayoutBuilder(
                 builder: (context, constraints) {
-                  final columns = constraints.crossAxisExtent < 420 ? 1 : 2;
+                  // The token is the width of the padded content, not the window.
+                  final columns = constraints.crossAxisExtent <
+                          E7Layout.cardGridMinContentWidthForTwoColumns
+                      ? 1
+                      : 2;
                   // Height is what the two text lines need; the aspect ratio is
                   // derived from the available width so cards never get squeezed.
-                  const tileHeight = 104.0;
                   final tileWidth =
                       (constraints.crossAxisExtent - (columns - 1) * E7Space.md) / columns;
                   return SliverGrid.count(
                     crossAxisCount: columns,
                     mainAxisSpacing: E7Space.md,
                     crossAxisSpacing: E7Space.md,
-                    childAspectRatio: tileWidth / tileHeight,
+                    childAspectRatio: tileWidth / E7Layout.categoryTileHeight,
                     children: [
                       for (final category in E7Category.all)
                         _CategoryCard(
@@ -134,14 +137,15 @@ class _CategoryCard extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border.all(color: E7Color.line),
             borderRadius: BorderRadius.circular(E7Radius.card),
+            boxShadow: [E7Elevation.cardShadow],
           ),
           child: Padding(
             padding: const EdgeInsets.all(E7Space.md),
             child: Row(
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: E7Control.iconBubble,
+                  height: E7Control.iconBubble,
                   decoration: const BoxDecoration(color: E7Color.brand50, shape: BoxShape.circle),
                   child: Icon(category.icon, color: E7Color.brand600),
                 ),
@@ -152,7 +156,7 @@ class _CategoryCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(category.nameAr, style: theme.textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: E7Space.xs),
                       Text(
                         category.blurbAr,
                         style: theme.textTheme.bodySmall?.copyWith(color: E7Color.ink500),

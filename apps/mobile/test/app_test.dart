@@ -72,12 +72,33 @@ void main() {
     expect(find.text('الشاشة دي لسه ما اتبنتش'), findsOneWidget);
   });
 
-  testWidgets('no layout overflow at a 320dp phone', (tester) async {
-    tester.view.physicalSize = const Size(320, 640);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
+  // Phase 1 ١‑٧: every route has to lay out clean from a 320dp phone up to a wide
+  // tablet, because the grid switches column count and the filter pills wrap.
+  const sizes = <String, Size>{
+    '320dp phone': Size(320, 640),
+    'the common Android phone': Size(360, 800),
+    'two-column threshold': Size(420, 800),
+    'tablet portrait': Size(768, 1024),
+    'wide window': Size(1200, 900),
+  };
+  const routes = <String>['/', '/search?q=قاعة+أفراح', '/listing', '/booking', '/login', '/provider'];
 
-    await tester.pumpWidget(E7gezlyApp());
-    expect(tester.takeException(), isNull);
-  });
+  for (final entry in sizes.entries) {
+    for (final route in routes) {
+      testWidgets('no layout overflow at ${entry.key} on $route', (tester) async {
+        tester.view.physicalSize = entry.value;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final router = buildRouter();
+        await tester.pumpWidget(E7gezlyApp(router: router));
+        router.go(route);
+        await tester.pumpAndSettle();
+
+        // A RenderFlex overflow reports through takeException, so this single
+        // assertion catches squeezed rows as well as hard framework errors.
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
 }

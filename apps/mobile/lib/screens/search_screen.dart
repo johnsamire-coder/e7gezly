@@ -4,6 +4,7 @@ import '../core/categories.dart';
 import '../core/format.dart';
 import '../core/tokens.dart';
 import '../widgets/data_offline_banner.dart';
+import '../widgets/e7_card.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key, required this.query, required this.categorySlug});
@@ -53,28 +54,26 @@ class _SearchScreenState extends State<SearchScreen> {
         child: ListView(
           padding: const EdgeInsets.all(E7Space.md),
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(E7Space.md),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.query.isEmpty ? 'بحث بالقطاع' : '«${widget.query}»',
-                      style: theme.textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: E7Space.sm),
-                    Wrap(
-                      spacing: E7Space.xs,
-                      runSpacing: E7Space.xs,
-                      children: [
-                        _FilterPill(label: 'القطاع: ${selected?.nameAr ?? 'الكل'}'),
-                        _FilterPill(label: 'اليوم: ${_date == null ? 'من غير تحديد' : E7Format.date(_date!)}'),
-                        _FilterPill(label: 'أقل من: ${E7Format.egp(_maxPrice.round())}'),
-                      ],
-                    ),
-                  ],
-                ),
+            E7Card(
+              padding: const EdgeInsets.all(E7Space.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.query.isEmpty ? 'بحث بالقطاع' : '«${widget.query}»',
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: E7Space.sm),
+                  Wrap(
+                    spacing: E7Space.xs,
+                    runSpacing: E7Space.xs,
+                    children: [
+                      _FilterPill(label: 'القطاع: ${selected?.nameAr ?? 'الكل'}'),
+                      _FilterPill(label: 'اليوم: ${_date == null ? 'من غير تحديد' : E7Format.date(_date!)}'),
+                      _FilterPill(label: 'أقل من: ${E7Format.egp(_maxPrice.round())}'),
+                    ],
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: E7Space.md),
@@ -133,7 +132,16 @@ class _FilterPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Chip(
-        label: Text(label, style: const TextStyle(fontSize: 13)),
+        // The label colour has to be set: a Chip on a custom background inherits
+        // Material's muted onSurfaceVariant, which is unreadable on brand50.
+        label: Text(
+          label,
+          style: const TextStyle(
+            fontSize: E7Font.chipLabelSize,
+            fontWeight: FontWeight.w500,
+            color: E7Color.selectFg,
+          ),
+        ),
         backgroundColor: E7Color.brand50,
         side: const BorderSide(color: E7Color.brand100),
       );

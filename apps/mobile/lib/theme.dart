@@ -9,7 +9,7 @@ TextStyle _display(TextStyle? base, int weight) => (base ?? const TextStyle()).c
       fontFamily: E7Font.display,
       fontVariations: [FontVariation.weight(weight.toDouble())],
       color: E7Color.ink900,
-      height: 1.35,
+      height: E7Font.displayLineHeight,
     );
 
 ThemeData buildE7Theme() {
@@ -19,6 +19,10 @@ ThemeData buildE7Theme() {
       primary: E7Color.brand500,
       onPrimary: Colors.white,
       secondary: E7Color.accent500,
+      // M3 resolves a selected ChoiceChip through secondaryContainer, so the brand
+      // selected state has to be set here rather than on the chip theme.
+      secondaryContainer: E7Color.selectBg,
+      onSecondaryContainer: E7Color.selectFg,
       surface: E7Color.card,
       error: E7Color.dangerFg,
     ),
@@ -52,14 +56,18 @@ ThemeData buildE7Theme() {
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size(0, 50),
+        minimumSize: const Size(0, E7Control.height),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(E7Radius.control)),
-        textStyle: const TextStyle(fontFamily: E7Font.text, fontWeight: FontWeight.w600, fontSize: 16),
+        textStyle: const TextStyle(
+          fontFamily: E7Font.text,
+          fontWeight: FontWeight.w600,
+          fontSize: E7Font.baseSize,
+        ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size(0, 48),
+        minimumSize: const Size(0, E7Control.heightSecondary),
         side: const BorderSide(color: E7Color.line),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(E7Radius.control)),
       ),
@@ -85,6 +93,9 @@ ThemeData buildE7Theme() {
     chipTheme: base.chipTheme.copyWith(
       shape: const StadiumBorder(),
       side: const BorderSide(color: E7Color.line),
+      selectedColor: E7Color.selectBg,
+      checkmarkColor: E7Color.selectFg,
+      padding: const EdgeInsets.symmetric(horizontal: E7Space.sm, vertical: E7Space.xs),
       labelStyle: const TextStyle(fontFamily: E7Font.text, fontWeight: FontWeight.w500),
     ),
     dividerTheme: const DividerThemeData(color: E7Color.line, thickness: 1, space: E7Space.md),
@@ -96,7 +107,7 @@ ThemeData buildE7Theme() {
       titleTextStyle: TextStyle(
         fontFamily: E7Font.display,
         fontWeight: FontWeight.w700,
-        fontSize: 20,
+        fontSize: E7Font.navTitleSize,
         color: E7Color.brand700,
       ),
     ),

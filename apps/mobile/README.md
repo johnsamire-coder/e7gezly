@@ -28,6 +28,9 @@ shows all 24 generated icon resources — five density buckets × four files, pl
 and `drawable-nodpi/splash_logo.png`. `badging` reports
 `icon='res/mipmap-anydpi-v26/ic_launcher.xml'`.
 
+After the Phase 1 visual pass (١‑٦, ١‑٧) the suite is **36 passing + 4 skipped** (the skipped four
+are the opt-in preview renders), still `No issues found!`.
+
 ## What is in place (Phase 0.4)
 
 | Piece | File |
@@ -75,6 +78,33 @@ Change a colour, gradient stop or glyph ratio in `tokens.json` and re-run — th
 Android XML under `res/` are output, so do not edit them directly. The script is ASCII-only
 because Windows PowerShell 5.1 mis-parses BOM-less non-ASCII sources; the Arabic glyph is read from
 JSON instead.
+
+## `lib/core/tokens.dart` is generated too
+
+Same rule, same reason: a hand-mirrored copy drifts. `../../tools/make-tokens-dart.ps1` reads
+`tokens.json` and writes every `E7Color` / `E7Radius` / `E7Space` / `E7Control` / `E7Layout` /
+`E7Elevation` / `E7Font` value.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/make-tokens-dart.ps1        # write
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/make-tokens-dart.ps1 -Check  # CI gate
+```
+
+`ci.yml` runs `-Check` before Flutter, so editing the Dart file without regenerating it (or changing
+`tokens.json` without re-running) fails the build.
+
+## Reviewing the UI with your eyes
+
+`test/preview_capture_test.dart` renders real screens to PNG at phone sizes. It is opt-in and its
+output (`test/preview/`) is gitignored — committed goldens go red when the renderer or OS changes.
+
+```bash
+E7_PREVIEW=1 FLUTTER_ROOT=<flutter-sdk> flutter test --update-goldens test/preview_capture_test.dart
+```
+
+`flutter test` does not register the pubspec fonts, so that script loads Cairo, IBM Plex Sans Arabic
+and `MaterialIcons` (from `$FLUTTER_ROOT/bin/cache/artifacts/material_fonts/`) itself; without it
+every glyph renders as an Ahem box.
 
 ## Not here yet
 
