@@ -1,13 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <rect width="64" height="64" rx="16" fill="#0c6e5c" />
+  <!-- Same mark as tools/make-icons.ps1; colours come from packages/tokens/tokens.json. -->
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#20967c" />
+      <stop offset="1" stop-color="#073b31" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#brand)" />
   <text
     x="32"
     y="34"
     text-anchor="middle"
     dominant-baseline="central"
-    font-family="'IBM Plex Sans Arabic', 'Cairo', 'Segoe UI', Tahoma, sans-serif"
-    font-size="38"
-    font-weight="700"
-    fill="#ffffff"
+    font-family="'Cairo', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, sans-serif"
+    font-size="37"
+    fill="#fbf7f0"
   >ح</text>
 </svg>

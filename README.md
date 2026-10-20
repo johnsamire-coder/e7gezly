@@ -47,7 +47,8 @@ a public GitHub repository only: `github.com/johnsamire-coder/e7gezly`.
 | --- | --- |
 | Monorepo + archive of the two prototypes | done |
 | Android toolchain (SDK licenses accepted) | done |
-| `packages/tokens` | written; consumed by both surfaces |
+| `packages/tokens` | written; consumed by both surfaces. Now also the single source for the brand mark |
+| `tools/make-icons.ps1` + Phase 1 brand assets | generated 43 files (Android densities + adaptive layers + splash, iOS app icons + launch images, web favicon); APK rebuilt and verified with `aapt`. No stock template artwork left |
 | `supabase/migrations` 0001–0002 + seed | written, **not applied** — needs your Supabase project |
 | `packages/contract/openapi.yaml` | written, codegen not configured yet |
 | `apps/mobile` | Flutter shell: `flutter analyze` clean, 7 tests pass, `flutter build apk --debug` ok (label `احجزلي`) |

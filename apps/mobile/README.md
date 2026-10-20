@@ -21,6 +21,13 @@ flutter build apk --debug   # build/app/outputs/flutter-apk/app-debug.apk — ve
                             # application-label:'احجزلي', minSdk 24
 ```
 
+Re-run after the Phase 1 brand assets landed (same commands, measured 2026-10-20):
+`No issues found!`, `00:04 +7: All tests passed!`, build succeeded, and `aapt list` on the new APK
+shows all 24 generated icon resources — five density buckets × four files, plus
+`mipmap-anydpi-v26/ic_launcher.xml`, `ic_launcher_round.xml`, `drawable-v21/launch_background.xml`
+and `drawable-nodpi/splash_logo.png`. `badging` reports
+`icon='res/mipmap-anydpi-v26/ic_launcher.xml'`.
+
 ## What is in place (Phase 0.4)
 
 | Piece | File |
@@ -53,14 +60,27 @@ ever changes, `test/app_test.dart` fails instead of silently switching digit sys
 Font License, with `OFL-*.txt` attribution files beside them. No third-party logos or brand marks
 are used anywhere; the wordmark is typeset text.
 
+## Brand marks are generated, never hand-placed
+
+Every launcher icon, iOS app icon and splash asset in this app is rendered by
+`../../tools/make-icons.ps1` from the `icon` block of `../../packages/tokens/tokens.json`. The
+glyph is typeset with the app's own `Cairo` font, so there is no SVG-to-PNG tool to install and no
+third-party artwork to license.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/make-icons.ps1   # 43 files
+```
+
+Change a colour, gradient stop or glyph ratio in `tokens.json` and re-run — the PNGs and the
+Android XML under `res/` are output, so do not edit them directly. The script is ASCII-only
+because Windows PowerShell 5.1 mis-parses BOM-less non-ASCII sources; the Arabic glyph is read from
+JSON instead.
+
 ## Not here yet
 
 Supabase client, auth, real listings, booking submission, payments, the AI assistant, Android
 release signing, and iOS builds (this machine is Windows — iOS needs cloud macOS CI, tracked as
 Phase 0.7).
 
-The launcher icons in `android/app/src/main/res/mipmap-*/ic_launcher.png` and
-`ios/Runner/Assets.xcassets/AppIcon.appiconset` are still the **stock Flutter template files**, not
-ours. They must be replaced with an original mark before any release build — the project brief
-rules out shipping unverified logos. The app name itself is set correctly: `احجزلي` in
-`android:label` and `CFBundleDisplayName`.
+The app name is `احجزلي` in `android:label` and `CFBundleDisplayName` (`CFBundleName` stays ASCII —
+iOS rejects a non-ASCII bundle name).
