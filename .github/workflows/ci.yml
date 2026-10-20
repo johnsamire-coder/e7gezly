@@ -13,6 +13,9 @@ on:
       - 'packages/**'
       - 'supabase/**'
       - '.github/workflows/ci.yml'
+  # The very first push to a fresh repo does not trigger a push event, so keep a
+  # manual entry point for verifying CI from a clean slate.
+  workflow_dispatch:
 
 jobs:
   mobile:
