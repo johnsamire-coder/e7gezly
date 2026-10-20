@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Reading sectors from Supabase needs the network in every build variant,
+         not only the debug one the Flutter template ships with. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="احجزلي"
         android:name="${applicationName}"

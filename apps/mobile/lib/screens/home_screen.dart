@@ -2,11 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../core/categories.dart';
 import '../core/tokens.dart';
+import '../data/category_source.dart';
+import '../widgets/category_catalog_notice.dart';
 import '../widgets/data_offline_banner.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.onSearch, required this.onSelectCategory});
+  const HomeScreen({
+    super.key,
+    required this.catalog,
+    required this.onSearch,
+    required this.onSelectCategory,
+  });
 
+  final CategoryCatalog catalog;
   final void Function(String query) onSearch;
   final void Function(String slug) onSelectCategory;
 
@@ -28,91 +36,123 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final catalog = widget.catalog;
 
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(E7Space.md, E7Space.lg, E7Space.md, 0),
-              sliver: SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('احجزلي', style: theme.textTheme.headlineMedium?.copyWith(color: E7Color.brand700)),
-                    const SizedBox(height: E7Space.xs),
-                    Text(
-                      'احجز اللي محتاجه في مصر — من التليفون',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: E7Color.ink500),
-                    ),
-                    const SizedBox(height: E7Space.lg),
-                    Row(
+    return ListenableBuilder(
+      listenable: catalog,
+      builder: (context, _) {
+        // Read inside the builder: a catalog-driven rebuild has to see the
+        // sectors the catalog just arrived with, not last build's snapshot.
+        final notice = CategoryCatalogNotice.from(catalog);
+        return Scaffold(
+          body: SafeArea(
+            bottom: false,
+            child: CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(E7Space.md, E7Space.lg, E7Space.md, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _controller,
-                            textInputAction: TextInputAction.search,
-                            onSubmitted: (_) => _submit(),
-                            decoration: const InputDecoration(
-                              hintText: 'عايز تحجز إيه؟',
-                              prefixIcon: Icon(Icons.search),
-                            ),
-                          ),
+                        Text(
+                          'احجزلي',
+                          style: theme.textTheme.headlineMedium?.copyWith(color: E7Color.brand700),
                         ),
-                        const SizedBox(width: E7Space.sm),
-                        FilledButton(
-                          onPressed: _submit,
-                          style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: E7Space.lg)),
-                          child: const Text('دوّر'),
+                        const SizedBox(height: E7Space.xs),
+                        Text(
+                          'احجز اللي محتاجه في مصر — من التليفون',
+                          style: theme.textTheme.bodyMedium?.copyWith(color: E7Color.ink500),
+                        ),
+                        const SizedBox(height: E7Space.lg),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _controller,
+                                textInputAction: TextInputAction.search,
+                                onSubmitted: (_) => _submit(),
+                                decoration: const InputDecoration(
+                                  hintText: 'عايز تحجز إيه؟',
+                                  prefixIcon: Icon(Icons.search),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: E7Space.sm),
+                            FilledButton(
+                              onPressed: _submit,
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: E7Space.lg),
+                              ),
+                              child: const Text('دوّر'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: E7Space.sm),
+                        Text(
+                          'مساعد الحجز بالذكاء الاصطناعي هييجي لاحقًا — دلوقتي البحث بالكلمة أو بالقطاع.',
+                          style: theme.textTheme.bodySmall?.copyWith(color: E7Color.ink400),
                         ),
                       ],
                     ),
-                    const SizedBox(height: E7Space.sm),
-                    Text(
-                      'مساعد الحجز بالذكاء الاصطناعي هييجي لاحقًا — دلوقتي البحث بالكلمة أو بالقطاع.',
-                      style: theme.textTheme.bodySmall?.copyWith(color: E7Color.ink400),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                if (catalog.isBuiltInOnly)
+                  const SliverPadding(
+                    padding: EdgeInsets.fromLTRB(E7Space.md, E7Space.md, E7Space.md, 0),
+                    sliver: SliverToBoxAdapter(child: DataOfflineBanner()),
+                  ),
+                if (notice != null)
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      E7Space.md,
+                      E7Space.lg,
+                      E7Space.md,
+                      E7Space.md,
+                    ),
+                    sliver: SliverToBoxAdapter(child: notice),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      E7Space.md,
+                      E7Space.lg,
+                      E7Space.md,
+                      E7Space.md,
+                    ),
+                    sliver: SliverLayoutBuilder(
+                      builder: (context, constraints) {
+                        // The token is the width of the padded content, not the window.
+                        final columns =
+                            constraints.crossAxisExtent <
+                                E7Layout.cardGridMinContentWidthForTwoColumns
+                            ? 1
+                            : 2;
+                        // Height is what the two text lines need; the aspect ratio is
+                        // derived from the available width so cards never get squeezed.
+                        final tileWidth =
+                            (constraints.crossAxisExtent - (columns - 1) * E7Space.md) / columns;
+                        return SliverGrid.count(
+                          crossAxisCount: columns,
+                          mainAxisSpacing: E7Space.md,
+                          crossAxisSpacing: E7Space.md,
+                          childAspectRatio: tileWidth / E7Layout.categoryTileHeight,
+                          children: [
+                            for (final category in catalog.categories)
+                              _CategoryCard(
+                                category: category,
+                                onTap: () => widget.onSelectCategory(category.slug),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+              ],
             ),
-            const SliverPadding(
-              padding: EdgeInsets.fromLTRB(E7Space.md, E7Space.md, E7Space.md, 0),
-              sliver: SliverToBoxAdapter(child: DataOfflineBanner()),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(E7Space.md, E7Space.lg, E7Space.md, E7Space.md),
-              sliver: SliverLayoutBuilder(
-                builder: (context, constraints) {
-                  // The token is the width of the padded content, not the window.
-                  final columns = constraints.crossAxisExtent <
-                          E7Layout.cardGridMinContentWidthForTwoColumns
-                      ? 1
-                      : 2;
-                  // Height is what the two text lines need; the aspect ratio is
-                  // derived from the available width so cards never get squeezed.
-                  final tileWidth =
-                      (constraints.crossAxisExtent - (columns - 1) * E7Space.md) / columns;
-                  return SliverGrid.count(
-                    crossAxisCount: columns,
-                    mainAxisSpacing: E7Space.md,
-                    crossAxisSpacing: E7Space.md,
-                    childAspectRatio: tileWidth / E7Layout.categoryTileHeight,
-                    children: [
-                      for (final category in E7Category.all)
-                        _CategoryCard(
-                          category: category,
-                          onTap: () => widget.onSelectCategory(category.slug),
-                        ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -155,7 +195,12 @@ class _CategoryCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(category.nameAr, style: theme.textTheme.titleMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(
+                        category.nameAr,
+                        style: theme.textTheme.titleMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: E7Space.xs),
                       Text(
                         category.blurbAr,

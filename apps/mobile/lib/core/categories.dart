@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
-/// The eight launch verticals, mirroring `supabase/seed/01_reference_data.sql`.
-/// Only taxonomy labels live here — no providers, prices, ratings or
-/// availability. Once the backend is reachable this list is fetched from
-/// `service_categories` instead of being carried in the app.
+/// A launch vertical as the customer app shows it. Only taxonomy labels live
+/// here — no providers, prices, ratings or availability.
+///
+/// [builtIn] is the offline fallback, hand-mirrored from
+/// `supabase/seed/01_reference_data.sql`. When Supabase is configured the list
+/// is read from `service_categories` instead, and any screen showing the
+/// fallback has to say that it is showing the fallback.
 class E7Category {
   const E7Category({
     required this.slug,
@@ -17,7 +20,7 @@ class E7Category {
   final String blurbAr;
   final IconData icon;
 
-  static const all = <E7Category>[
+  static const builtIn = <E7Category>[
     E7Category(
       slug: 'restaurants-cafes',
       nameAr: 'مطاعم وكافيهات',
@@ -68,11 +71,24 @@ class E7Category {
     ),
   ];
 
-  static E7Category? bySlug(String? slug) {
+  static E7Category? bySlug(List<E7Category> categories, String? slug) {
     if (slug == null) return null;
-    for (final category in all) {
+    for (final category in categories) {
       if (category.slug == slug) return category;
     }
     return null;
   }
+
+  /// `service_categories.icon` stores a stable key, not a glyph. An unknown key
+  /// falls back so a sector added on the server still renders.
+  static IconData iconForKey(String? key) => switch (key) {
+    'restaurant' => Icons.restaurant_outlined,
+    'sports' => Icons.sports_soccer_outlined,
+    'beauty' => Icons.face_outlined,
+    'health' => Icons.local_hospital_outlined,
+    'home' => Icons.handyman_outlined,
+    'events' => Icons.celebration_outlined,
+    'travel' => Icons.beach_access_outlined,
+    _ => Icons.auto_awesome_outlined,
+  };
 }

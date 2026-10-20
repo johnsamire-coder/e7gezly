@@ -12,6 +12,19 @@ flutter devices            # pick a device or emulator ID
 flutter run -d <deviceId>
 ```
 
+Without any config the app runs on the sector labels it carries inside it, and the
+`لسه ما فيهوش قوائم حقيقية` banner says so on screen. To feed it from the real project,
+copy `env.local.example.json` to `env.local.json`, put in the project URL and the
+**public** key (the one the dashboard labels `anon` / `publishable`), and pass it in:
+
+```bash
+flutter run -d <deviceId> --dart-define-from-file=env.local.json
+flutter test test/live_data_test.dart --dart-define-from-file=env.local.json  # hits the server
+```
+
+`env.local.json` is gitignored. A service-role or database password never belongs in a
+client build — the app only reads what the `anon` role is allowed to see.
+
 Verification commands used in Phase 0:
 
 ```bash
@@ -31,19 +44,31 @@ and `drawable-nodpi/splash_logo.png`. `badging` reports
 After the Phase 1 visual pass (١‑٦, ١‑٧) the suite is **36 passing + 4 skipped** (the skipped four
 are the opt-in preview renders), still `No issues found!`.
 
+Re-run after the sectors came from Supabase (٢‑٧, ٢‑٨), measured 2026-10-21 on this machine:
+`No issues found!`, `+62 ~5: All tests passed!` (5 skipped = 4 preview renders + the live-data test,
+which runs only when a config is supplied), and `flutter build apk --debug` produced
+`build/app/outputs/flutter-apk/app-debug.apk` — `aapt dump permissions` on it reports
+`uses-permission: name='android.permission.INTERNET'`, which the release build needs too.
+The Android build required one flag, `kotlin.incremental=false` in `android/gradle.properties`:
+Kotlin caches plugin sources relative to the project root, and here the pub cache is on `C:` while the
+project is on `D:`, so closing that cache threw on every plugin task.
+
 ## What is in place (Phase 0.4)
 
 | Piece | File |
 | --- | --- |
 | Brand colors, radii, spacing, fonts | `lib/core/tokens.dart` (mirrors `packages/tokens`) |
 | EGP + Arabic date formatting | `lib/core/format.dart` |
-| Launch verticals (taxonomy labels only) | `lib/core/categories.dart` |
+| Launch verticals: model + built-in fallback | `lib/core/categories.dart` |
+| Where those verticals come from (server or fallback) | `lib/data/category_source.dart` |
+| Build-time Supabase config (public key only) | `lib/core/env.dart` |
 | Material 3 RTL theme | `lib/theme.dart` |
 | Router skeleton | `lib/router.dart` |
 | Home: wordmark, «عايز تحجز إيه؟» field, category cards | `lib/screens/home_screen.dart` |
 | Search: working filter state, no results yet | `lib/screens/search_screen.dart` |
 | Honest "not built yet" screen | `lib/screens/placeholder_screen.dart` |
 | "No real listings yet" banner | `lib/widgets/data_offline_banner.dart` |
+| Sector states: loading, fetch failed (retry), server has none published | `lib/widgets/category_catalog_notice.dart` |
 
 Routes live now: `/`, `/search`, `/listing`, `/booking`, `/login`, `/provider`.
 `/listing`, `/booking`, `/login` and `/provider` render `PlaceholderScreen`, which states in
@@ -108,9 +133,10 @@ every glyph renders as an Ahem box.
 
 ## Not here yet
 
-Supabase client, auth, real listings, booking submission, payments, the AI assistant, Android
+Auth (phone signup), real listings, booking submission, payments, the AI assistant, Android
 release signing, and iOS builds (this machine is Windows — iOS needs cloud macOS CI, tracked as
-Phase 0.7).
+Phase 0.7). The Supabase client is in, but read-only and for one table: `service_categories`.
+Governorates exist on the server and no mobile screen reads them yet.
 
 The app name is `احجزلي` in `android:label` and `CFBundleDisplayName` (`CFBundleName` stays ASCII —
 iOS rejects a non-ASCII bundle name).
