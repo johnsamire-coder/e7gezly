@@ -99,6 +99,33 @@ create trigger profiles_touch_updated_at
   before update on public.profiles
   for each row execute function public.touch_updated_at();
 
+-- ─── Signup ────────────────────────────────────────────────────────────────
+-- Profile + default role are created server-side when the Auth user is created.
+-- No client INSERT path: a profile row can only come from Auth, never from a request.
+create or replace function public.handle_new_auth_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, full_name, phone, phone_verified)
+  values (
+    new.id,
+    new.raw_user_meta_data ->> 'full_name',
+    new.phone,
+    new.phone_confirmed_at is not null
+  );
+  insert into public.account_roles (account_id, role)
+  values (new.id, 'customer');
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_auth_user();
+
 -- ─── Row level security ───────────────────────────────────────────────────
 alter table public.profiles enable row level security;
 alter table public.account_roles enable row level security;
@@ -109,8 +136,14 @@ create policy profiles_self_read on public.profiles
   for select using (id = auth.uid() or public.is_admin());
 
 create policy profiles_self_update on public.profiles
-  for update using (id = auth.uid() and not public.is_admin());
+  for update using (id = auth.uid());
   -- updated_at is server-managed; role grants are never self-service (see account_roles policies).
+
+-- RLS policies are row-level only; they cannot stop a user from writing a column they
+-- should not touch. phone_verified mirrors Auth's own verification, so client updates
+-- on it (and on id/timestamps) are revoked at the column level, not the row level.
+revoke update on public.profiles from authenticated;
+grant update (full_name, phone, avatar_url, locale) on public.profiles to authenticated;
 
 create policy account_roles_self_read on public.account_roles
   for select using (account_id = auth.uid() or public.is_admin());
