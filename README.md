@@ -38,7 +38,10 @@ archive/         Pre-Foundation React prototypes (reference only, not built)
 
 ## Status
 
-Phase 0 (foundation) in progress. Nothing is deployed and nothing is published.
+Full phased plan with acceptance criteria: [`PLAN.md`](PLAN.md) (Arabic).
+
+Phase 0 (foundation) in progress. Nothing is deployed and nothing is published — the code lives in
+a public GitHub repository only: `github.com/johnsamire-coder/e7gezly`.
 
 | Step | State |
 | --- | --- |
@@ -49,7 +52,7 @@ Phase 0 (foundation) in progress. Nothing is deployed and nothing is published.
 | `packages/contract/openapi.yaml` | written, codegen not configured yet |
 | `apps/mobile` | Flutter shell: `flutter analyze` clean, 7 tests pass, `flutter build apk --debug` ok (label `احجزلي`) |
 | `apps/web` | Refine + Ant Design RTL portal: `tsc -b` clean, `vite build` ok, oxlint 0 errors |
-| CI | `.github/workflows/ci.yml` + `ios.yml` written, **never run** — no remote repo yet |
+| CI | `ci.yml` green on GitHub (run #1: portal + Flutter app). `ios.yml` written, never run — needs an Apple Developer account |
 
 Blocked on you: creating the Supabase account/project (I don't sign you up), and choosing the OTP
 provider for phone login (Twilio vs WhatsApp Business).
