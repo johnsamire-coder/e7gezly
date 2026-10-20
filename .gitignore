@@ -1,0 +1,50 @@
+# dependencies
+node_modules/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+
+# builds
+dist/
+build/
+*.apk
+*.aab
+*.ipa
+*.app
+out/
+
+# env + secrets — never commit
+.env
+.env.*
+!.env.example
+supabase/.temp/
+supabase/config.toml.local
+*.pem
+*.p12
+*.keystore
+key.properties
+
+# tooling caches
+coverage/
+.turbo/
+.next/
+.vite/
+*.tsbuildinfo
+.dccache
+
+# flutter / android toolchain-local paths
+local.properties
+.dart_tool/
+.packages
+.flutter/
+ios/Pods/
+ios/Flutter/Flutter.podspec
+*.g.dart.bak
+
+# editors / os
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log

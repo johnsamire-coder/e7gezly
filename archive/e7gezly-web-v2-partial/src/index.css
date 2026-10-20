@@ -1,0 +1,92 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --font-display: 'Cairo', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+
+  --color-brand-50: #eaf6f3;
+  --color-brand-100: #cfe9e2;
+  --color-brand-200: #a3d5c8;
+  --color-brand-300: #6bb9a7;
+  --color-brand-400: #359a83;
+  --color-brand-500: #14806b;
+  --color-brand-600: #0c6e5c;
+  --color-brand-700: #0a5949;
+  --color-brand-800: #084437;
+  --color-brand-900: #062e26;
+
+  --color-accent-100: #fdefd6;
+  --color-accent-300: #f4c784;
+  --color-accent-500: #e8963a;
+  --color-accent-600: #cc7a1f;
+  --color-accent-700: #a35f16;
+
+  --color-ink-400: #6b7f8c;
+  --color-ink-500: #4a5e6b;
+  --color-ink-600: #2d4150;
+  --color-ink-800: #16232e;
+  --color-ink-900: #0d1720;
+
+  --color-canvas: #f4f7f8;
+  --color-sand: #fbf7f0;
+  --color-line: #dfe7ea;
+
+  --color-warn-100: #fdf0d8;
+  --color-warn-700: #93600f;
+  --color-danger-100: #fde8e8;
+  --color-danger-600: #c0392b;
+
+  --radius-card: 18px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 2px rgb(13 23 32 / 0.04), 0 8px 24px -12px rgb(13 23 32 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(13 23 32 / 0.05), 0 18px 40px -16px rgb(13 23 32 / 0.2);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-canvas);
+    color: var(--color-ink-800);
+    font-family: var(--font-sans);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    line-height: 1.3;
+    color: var(--color-ink-900);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-brand-300);
+    outline-offset: 2px;
+  }
+
+  [dir='rtl'] input[type='number'],
+  [dir='rtl'] input[type='date'],
+  [dir='rtl'] input[type='time'] {
+    text-align: right;
+  }
+}
+
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 1200px;
+  padding-inline: 1rem;
+}
+
+@utility skeleton-line {
+  height: 0.75rem;
+  border-radius: 9999px;
+  background: var(--color-line);
+}

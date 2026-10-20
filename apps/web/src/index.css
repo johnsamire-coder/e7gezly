@@ -1,0 +1,21 @@
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  background: #f4f7f8;
+  color: #0d1720;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Latin digits everywhere (tokens.layout.digits = latn). */
+code,
+kbd,
+pre,
+samp {
+  font-variant-numeric: normal;
+}

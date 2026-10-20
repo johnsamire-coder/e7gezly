@@ -1,0 +1,34 @@
+name: iOS (unsigned build)
+
+# This job only proves the Flutter iOS project compiles. It signs nothing and
+# uploads nothing, because there is no Apple Developer account yet — releasing to
+# TestFlight needs CODE_* signing secrets plus a bundle id owned by the team.
+# Manual trigger only: no push trigger, nothing runs until someone presses the button.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-unsigned:
+    name: flutter build ios --no-codesign
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.6'
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Build without signing
+        run: flutter build ios --config-only --no-codesign --debug
+
+      # TODO (needs Apple Developer Program membership + certificates in repo secrets):
+      #   - fastlane build_app with export_method app-store
+      #   - upload to TestFlight
