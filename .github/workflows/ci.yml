@@ -58,13 +58,21 @@ jobs:
           if-no-files-found: error
 
   portal:
-    name: Web portal (lint · typecheck · build)
+    name: Web portal (schema check · lint · typecheck · build)
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: apps/web
     steps:
       - uses: actions/checkout@v4
+
+      # database.types.ts is generated output. A migration that lands without a
+      # regenerate leaves every row type in the portal describing a schema that no
+      # longer exists, and nothing else in this job would notice.
+      - name: Generated database types are in sync
+        shell: pwsh
+        working-directory: ${{ github.workspace }}
+        run: ./tools/check-schema-drift.ps1
 
       - uses: actions/setup-node@v4
         with:
