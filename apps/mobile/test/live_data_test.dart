@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:e7gezly_mobile/core/env.dart';
 import 'package:e7gezly_mobile/data/category_source.dart';
+import 'package:e7gezly_mobile/data/governorate_source.dart';
 
 void main() {
   // Skipped without a config: `flutter test` in CI must not need the network.
@@ -17,10 +18,7 @@ void main() {
     // The plugin's session storage needs the platform channel this runner has
     // no host for; an empty mock is enough for an unauthenticated read.
     SharedPreferences.setMockInitialValues({});
-    await Supabase.initialize(
-      url: E7Env.supabaseUrl,
-      publishableKey: E7Env.supabaseAnonKey,
-    );
+    await Supabase.initialize(url: E7Env.supabaseUrl, publishableKey: E7Env.supabaseAnonKey);
   });
 
   test('the project returns its published sectors as rows', () async {
@@ -33,5 +31,17 @@ void main() {
     }
     // The seed puts restaurants first, and the app has to keep the server's order.
     expect(sectors.first.slug, 'restaurants-cafes');
+  }, skip: skip);
+
+  test('the project returns its active governorates as rows', () async {
+    final cities = await const SupabaseGovernorateSource().load();
+
+    expect(cities, isNotEmpty);
+    for (final city in cities) {
+      expect(city.id, greaterThan(0));
+      expect(city.nameAr, isNotEmpty);
+    }
+    // The seed puts Cairo first, and the city filter has to keep that order.
+    expect(cities.first.nameAr, 'القاهرة');
   }, skip: skip);
 }

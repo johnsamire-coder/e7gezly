@@ -43,6 +43,7 @@ ThemeData buildE7Theme() {
       titleMedium: tt.titleMedium?.copyWith(fontFamily: E7Font.text, fontWeight: FontWeight.w600),
       bodyLarge: tt.bodyLarge?.copyWith(fontFamily: E7Font.text, height: E7Font.textLineHeight),
       bodyMedium: tt.bodyMedium?.copyWith(fontFamily: E7Font.text, height: E7Font.textLineHeight),
+      bodySmall: tt.bodySmall?.copyWith(fontFamily: E7Font.text, height: E7Font.textLineHeight),
       labelLarge: tt.labelLarge?.copyWith(fontFamily: E7Font.text, fontWeight: FontWeight.w600),
     ),
     cardTheme: CardThemeData(
@@ -96,7 +97,13 @@ ThemeData buildE7Theme() {
       selectedColor: E7Color.selectBg,
       checkmarkColor: E7Color.selectFg,
       padding: const EdgeInsets.symmetric(horizontal: E7Space.sm, vertical: E7Space.xs),
-      labelStyle: const TextStyle(fontFamily: E7Font.text, fontWeight: FontWeight.w500),
+      // The label colour has to be set here too: an unselected ChoiceChip inherits
+      // a seed-derived onSurfaceVariant that paints almost invisible on a white card.
+      labelStyle: const TextStyle(
+        fontFamily: E7Font.text,
+        fontWeight: FontWeight.w500,
+        color: E7Color.ink600,
+      ),
     ),
     dividerTheme: const DividerThemeData(color: E7Color.line, thickness: 1, space: E7Space.md),
     appBarTheme: const AppBarTheme(

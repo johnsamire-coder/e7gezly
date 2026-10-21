@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import 'data/category_source.dart';
+import 'data/governorate_source.dart';
 import 'screens/home_screen.dart';
 import 'screens/placeholder_screen.dart';
 import 'screens/search_screen.dart';
@@ -12,10 +13,11 @@ String _searchPath({String? query, String? category}) {
   return Uri(path: '/search', queryParameters: params.isEmpty ? null : params).toString();
 }
 
-/// [catalog] is shared by the screens that show sectors, so one build asks the
-/// server once. Tests hand it a fixed list.
-GoRouter buildRouter([CategoryCatalog? catalog]) {
+/// [catalog] and [geography] are shared by the screens that show them, so one
+/// build asks the server once. Tests hand them fixed lists.
+GoRouter buildRouter([CategoryCatalog? catalog, GovernorateCatalog? geography]) {
   final categories = catalog ?? CategoryCatalog();
+  final governorates = geography ?? GovernorateCatalog();
   return GoRouter(
     initialLocation: '/',
     routes: [
@@ -31,6 +33,7 @@ GoRouter buildRouter([CategoryCatalog? catalog]) {
         path: '/search',
         builder: (context, state) => SearchScreen(
           catalog: categories,
+          geography: governorates,
           query: state.uri.queryParameters['q'] ?? '',
           categorySlug: state.uri.queryParameters['category'],
         ),

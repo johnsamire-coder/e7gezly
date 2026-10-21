@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/date_symbol_data_local.dart';
 // `show Intl` only: package:intl also exports a TextDirection that would clash
 // with dart:ui's TextDirection used in the RTL assertion below.
@@ -7,7 +8,9 @@ import 'package:intl/intl.dart' show Intl;
 
 import 'package:e7gezly_mobile/core/categories.dart';
 import 'package:e7gezly_mobile/core/format.dart';
+import 'package:e7gezly_mobile/core/geography.dart';
 import 'package:e7gezly_mobile/data/category_source.dart';
+import 'package:e7gezly_mobile/data/governorate_source.dart';
 import 'package:e7gezly_mobile/main.dart';
 import 'package:e7gezly_mobile/router.dart';
 
@@ -139,6 +142,81 @@ void main() {
     });
   });
 
+  // Phase 2 ٢‑٨: geography has no list carried inside the app, so every state
+  // of it has to be named on screen instead of quietly filled.
+  group('governorates', () {
+    testWidgets('unconfigured build says there is no city source, sectors still fall back', (
+      tester,
+    ) async {
+      final router = buildRouter(CategoryCatalog(_FakeCategorySource(_serverSectors)));
+      await tester.pumpWidget(E7gezlyApp(router: router));
+      router.go('/search');
+      await tester.pumpAndSettle();
+
+      expect(find.text('مفيش محافظات معروضة من سيرفر'), findsOneWidget);
+      expect(find.text('المحافظة: الكل'), findsOneWidget);
+    });
+
+    testWidgets('server governorates become the city chips and the filter updates', (tester) async {
+      final router = buildRouter(
+        CategoryCatalog(_FakeCategorySource(_serverSectors)),
+        GovernorateCatalog(_FakeGovernorateSource(_serverCities)),
+      );
+      await tester.pumpWidget(E7gezlyApp(router: router));
+      router.go('/search');
+      await tester.pumpAndSettle();
+
+      expect(find.text('مفيش محافظات معروضة من سيرفر'), findsNothing);
+      final chip = find.text('الجيزة');
+      await tester.ensureVisible(chip);
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+
+      expect(find.text('المحافظة: الجيزة'), findsOneWidget);
+
+      await tester.tap(chip);
+      await tester.pumpAndSettle();
+      expect(find.text('المحافظة: الكل'), findsOneWidget);
+    });
+
+    testWidgets('a failed city fetch is named as a failure, retry draws the chips', (tester) async {
+      final source = _FlakyGovernorateSource();
+      final router = buildRouter(
+        CategoryCatalog(_FakeCategorySource(_serverSectors)),
+        GovernorateCatalog(source),
+      );
+      await tester.pumpWidget(E7gezlyApp(router: router));
+      router.go('/search');
+      await tester.pumpAndSettle();
+
+      expect(find.text('المحافظات مجاتش من السيرفر'), findsOneWidget);
+
+      await tester.tap(find.text('حاول تاني'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('القاهرة'), findsOneWidget);
+      expect(find.text('المحافظات مجاتش من السيرفر'), findsNothing);
+    });
+
+    testWidgets('an empty answer says the server has no published governorates', (tester) async {
+      final router = buildRouter(
+        CategoryCatalog(_FakeCategorySource(_serverSectors)),
+        GovernorateCatalog(_FakeGovernorateSource(const [])),
+      );
+      await tester.pumpWidget(E7gezlyApp(router: router));
+      router.go('/search');
+      await tester.pumpAndSettle();
+
+      expect(find.text('السيرفر ما فيهوش محافظات منشورة'), findsOneWidget);
+    });
+
+    test('an id that is no longer in the list reads as no city selected', () {
+      expect(E7Governorate.byId(_serverCities, 2)?.nameAr, 'الجيزة');
+      expect(E7Governorate.byId(_serverCities, 99), isNull);
+      expect(E7Governorate.byId(_serverCities, null), isNull);
+    });
+  });
+
   // Phase 1 ١‑٧: every route has to lay out clean from a 320dp phone up to a wide
   // tablet, because the grid switches column count and the filter pills wrap.
   const sizes = <String, Size>{
@@ -176,12 +254,26 @@ void main() {
     }
   }
 
-  // The connected states share those layouts: a two-item grid, and a notice card
-  // in place of the grid.
+  // The connected states share those layouts: a two-item grid, a notice card
+  // in place of the grid, and a city chip row in place of the city notice.
   const dataRoutes = <String>['/', '/search?category=sports-venues'];
-  final connectedVariants = <(String, CategoryCatalog Function())>[
-    ('server sectors', () => CategoryCatalog(_FakeCategorySource(_serverSectors))),
-    ('failed fetch', () => CategoryCatalog(_FailingCategorySource())),
+  final connectedVariants = <(String, GoRouter Function())>[
+    ('server sectors', () => buildRouter(CategoryCatalog(_FakeCategorySource(_serverSectors)))),
+    ('failed fetch', () => buildRouter(CategoryCatalog(_FailingCategorySource()))),
+    (
+      'server sectors and cities',
+      () => buildRouter(
+        CategoryCatalog(_FakeCategorySource(_serverSectors)),
+        GovernorateCatalog(_FakeGovernorateSource(_serverCities)),
+      ),
+    ),
+    (
+      'failed city fetch',
+      () => buildRouter(
+        CategoryCatalog(_FakeCategorySource(_serverSectors)),
+        GovernorateCatalog(_FailingGovernorateSource()),
+      ),
+    ),
   ];
 
   for (final entry in sizes.entries) {
@@ -194,7 +286,7 @@ void main() {
           tester.view.devicePixelRatio = 1.0;
           addTearDown(tester.view.reset);
 
-          final router = buildRouter(variant.$2());
+          final router = variant.$2();
           await tester.pumpWidget(E7gezlyApp(router: router));
           router.go(route);
           await tester.pumpAndSettle();
@@ -245,5 +337,37 @@ class _FlakyCategorySource implements CategorySource {
     _calls++;
     if (_calls == 1) throw Exception('no route to host');
     return _serverSectors;
+  }
+}
+
+/// Two rows shaped like `governorates`, short enough to tell apart from any
+/// list someone might be tempted to carry inside the app.
+final _serverCities = <E7Governorate>[
+  E7Governorate(id: 1, nameAr: 'القاهرة'),
+  E7Governorate(id: 2, nameAr: 'الجيزة'),
+];
+
+class _FakeGovernorateSource implements GovernorateSource {
+  _FakeGovernorateSource(this.rows);
+
+  final List<E7Governorate> rows;
+
+  @override
+  Future<List<E7Governorate>> load() async => rows;
+}
+
+class _FailingGovernorateSource implements GovernorateSource {
+  @override
+  Future<List<E7Governorate>> load() async => throw Exception('no route to host');
+}
+
+class _FlakyGovernorateSource implements GovernorateSource {
+  int _calls = 0;
+
+  @override
+  Future<List<E7Governorate>> load() async {
+    _calls++;
+    if (_calls == 1) throw Exception('no route to host');
+    return _serverCities;
   }
 }

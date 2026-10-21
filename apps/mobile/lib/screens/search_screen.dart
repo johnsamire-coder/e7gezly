@@ -2,21 +2,26 @@ import 'package:flutter/material.dart';
 
 import '../core/categories.dart';
 import '../core/format.dart';
+import '../core/geography.dart';
 import '../core/tokens.dart';
 import '../data/category_source.dart';
+import '../data/governorate_source.dart';
 import '../widgets/category_catalog_notice.dart';
 import '../widgets/data_offline_banner.dart';
 import '../widgets/e7_card.dart';
+import '../widgets/geography_catalog_notice.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({
     super.key,
     required this.catalog,
+    required this.geography,
     required this.query,
     required this.categorySlug,
   });
 
   final CategoryCatalog catalog;
+  final GovernorateCatalog geography;
   final String query;
   final String? categorySlug;
 
@@ -26,6 +31,7 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   late String? _category = widget.categorySlug;
+  int? _governorate;
   DateTime? _date;
   double _maxPrice = 1500;
 
@@ -55,14 +61,19 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final catalog = widget.catalog;
+    final geography = widget.geography;
 
     return ListenableBuilder(
-      listenable: catalog,
+      listenable: Listenable.merge([catalog, geography]),
       builder: (context, _) {
         // Read inside the builder so a catalog-driven rebuild never paints the
         // previous build's sectors or notice.
         final selected = E7Category.bySlug(catalog.categories, _category);
         final sectorsNotice = CategoryCatalogNotice.from(catalog);
+        // Same reason, and the id can outlive the row it came from if a retry
+        // returns a shorter list, so the pill reads through the current rows.
+        final city = E7Governorate.byId(geography.governorates, _governorate);
+        final citiesNotice = GovernorateCatalogNotice.from(geography);
         return Scaffold(
           appBar: AppBar(title: const Text('نتائج البحث')),
           body: SafeArea(
@@ -84,6 +95,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         runSpacing: E7Space.xs,
                         children: [
                           _FilterPill(label: 'القطاع: ${selected?.nameAr ?? 'الكل'}'),
+                          _FilterPill(label: 'المحافظة: ${city?.nameAr ?? 'الكل'}'),
                           _FilterPill(
                             label:
                                 'اليوم: ${_date == null ? 'من غير تحديد' : E7Format.date(_date!)}',
@@ -110,6 +122,28 @@ class _SearchScreenState extends State<SearchScreen> {
                             selected: _category == category.slug,
                             onSelected: (on) =>
                                 setState(() => _category = on ? category.slug : null),
+                          ),
+                          const SizedBox(width: E7Space.sm),
+                        ],
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: E7Space.md),
+                Text('المحافظات', style: theme.textTheme.titleMedium),
+                const SizedBox(height: E7Space.sm),
+                if (citiesNotice != null)
+                  citiesNotice
+                else
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        for (final governorate in geography.governorates) ...[
+                          ChoiceChip(
+                            label: Text(governorate.nameAr),
+                            selected: _governorate == governorate.id,
+                            onSelected: (on) =>
+                                setState(() => _governorate = on ? governorate.id : null),
                           ),
                           const SizedBox(width: E7Space.sm),
                         ],
