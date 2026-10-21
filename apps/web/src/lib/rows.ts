@@ -8,3 +8,5 @@ import type { Database } from './database.types';
 export type ServiceCategoryRow = Database['public']['Tables']['service_categories']['Row'];
 
 export type GovernorateRow = Database['public']['Tables']['governorates']['Row'];
+
+export type AreaRow = Database['public']['Tables']['areas']['Row'];
