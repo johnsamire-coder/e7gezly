@@ -39,10 +39,14 @@ function explain(error: unknown): string {
       ? String((error as { message: unknown }).message ?? '')
       : '';
   if (/duplicate key/i.test(raw)) return 'القيمة دي موجودة بالفعل في قاعدة البيانات، وممنوع التكرار.';
+  if (/categories_slug_shape/i.test(raw))
+    return 'المعرّف لازم يكون حروف إنجليزية صغيرة وأرقام، وفواصل "-" بينها (زي: home-services).';
   if (/row-level security|policy/i.test(raw))
     return 'السيرفر رفض الكتابة: حسابك مافيهوش صلاحية التعديل على هذا الجدول.';
   if (/violates check constraint/i.test(raw)) return 'القيمة لا تطابق قواعد التحقق المكتوبة في قاعدة البيانات.';
   if (/violates foreign key/i.test(raw)) return 'العنصر المرتبط بيه موجودش أو اتغيّر.';
+  if (/violates not-null constraint/i.test(raw)) return 'الخانة دي مطلوبة في قاعدة البيانات، والقيمة اللي بعتها فاضية.';
+  if (/permission denied/i.test(raw)) return 'السيرفر رفض الكتابة: الحساب ده ما عنوش صلاحية على هذا الجدول أصلًا.';
   return raw || 'الحفظ فشل لسبب غير متوقع.';
 }
 
@@ -69,6 +73,16 @@ function control(field: AdminField) {
 
 type FormValues = Record<string, string | number | boolean | null | undefined>;
 
+/** `latin` boxes are the ones that end up as identifiers or links, so Arabic typed into
+ *  them is caught here instead of being stored and rejected by the server later. */
+function fieldRules(field: AdminField) {
+  const rules: { required?: boolean; pattern?: RegExp; message: string }[] = [];
+  if ('required' in field && field.required) rules.push({ required: true, message: `${field.label} مطلوب` });
+  if (field.kind === 'text' && field.latin)
+    rules.push({ pattern: /^[^\u0600-\u06FF]*$/, message: 'الخانة دي بالأحرف اللاتينية، مش بالعربي.' });
+  return rules.length > 0 ? rules : undefined;
+}
+
 export function AdminRecordModal({ resource, title, fields, record, prefill, open, onClose }: Props) {
   const [form] = Form.useForm<FormValues>();
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +100,12 @@ export function AdminRecordModal({ resource, title, fields, record, prefill, ope
   const submit = async () => {
     const values = await form.validateFields();
     const payload: Record<string, unknown> = {};
-    for (const field of fields) payload[field.name] = values[field.name] ?? null;
+    for (const field of fields) {
+      const value = values[field.name];
+      // An untouched optional box must not store an empty string: Postgres keeps '' as a
+      // real value, so every later "does this row have a name in English" answer is wrong.
+      payload[field.name] = typeof value === 'string' && value.trim() === '' ? null : (value ?? null);
+    }
     setError(null);
     setSaving(true);
     try {
@@ -136,7 +155,7 @@ export function AdminRecordModal({ resource, title, fields, record, prefill, ope
             name={field.name}
             label={field.label}
             valuePropName={field.kind === 'switch' ? 'checked' : 'value'}
-            rules={'required' in field && field.required ? [{ required: true, message: `${field.label} مطلوب` }] : undefined}
+            rules={fieldRules(field)}
           >
             {control(field)}
           </Form.Item>
