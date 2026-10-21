@@ -46,6 +46,10 @@ ios/Flutter/Flutter.podspec
 # differs per OS, so they are never committed or compared
 apps/mobile/test/preview/
 
+# the browser target is a side effect of running the app for a preview.
+# the customer product is Android + iOS, so a web/ scaffold must never land in the repo
+apps/mobile/web/
+
 # editors / os
 .idea/
 .vscode/
